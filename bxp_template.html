@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BxP">
+<meta name="theme-color" content="#1a73e8">
+<link rel="manifest" href="manifest.json">
+<title>BxP — Biochemistry by Presentation</title>
+<style>
+:root{
+  --blue:#1a73e8;--blue-dk:#1557b0;--blue-lt:#e8f0fe;
+  --gray:#5f6368;--gray-lt:#f8f9fa;--border:#dadce0;
+  --text:#202124;--text2:#5f6368;--r:8px;
+  --tab-h:56px;--header-h:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f1f3f4;color:var(--text);}
+#app{position:fixed;inset:0;max-width:600px;margin:0 auto;background:#fff;display:flex;flex-direction:column;box-shadow:0 0 24px rgba(0,0,0,.12);}
+#hdr{background:var(--blue);color:#fff;height:var(--header-h);min-height:var(--header-h);display:flex;align-items:center;padding:0 4px;flex-shrink:0;z-index:10;}
+#back-btn{display:none;background:none;border:none;color:#fff;padding:12px;border-radius:50%;font-size:22px;line-height:1;cursor:pointer;flex-shrink:0;}
+#back-btn:active{background:rgba(255,255,255,.2);}
+#hdr-title{flex:1;padding:0 8px;overflow:hidden;}
+#hdr-title h1{font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#hdr-title p{font-size:12px;opacity:.85;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#search-btn{background:none;border:none;color:#fff;padding:12px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;}
+#search-btn:active{background:rgba(255,255,255,.2);}
+#search-bar{display:none;background:var(--blue-dk);padding:8px 12px;flex-shrink:0;}
+#search-input{width:100%;padding:10px 16px;border-radius:24px;border:none;font-size:15px;outline:none;background:#fff;color:var(--text);}
+#tabs{display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;}
+.tab{flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;transition:color .15s,border-color .15s;user-select:none;}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue);}
+.tab:active{background:var(--blue-lt);}
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;}
+.screen{display:none;}
+.screen.on{display:block;}
+.li{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;gap:12px;}
+.li:active{background:var(--blue-lt);}
+.li-text{flex:1;min-width:0;}
+.li-p{font-size:15px;font-weight:500;color:var(--text);line-height:1.3;}
+.li-s{font-size:13px;color:var(--text2);margin-top:3px;line-height:1.4;}
+.badge{background:var(--blue-lt);color:var(--blue);font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;white-space:nowrap;flex-shrink:0;}
+.chev{color:#ccc;font-size:22px;flex-shrink:0;line-height:1;}
+.gh{background:var(--gray-lt);padding:8px 16px;font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;}
+.banner{background:var(--blue-lt);border-left:4px solid var(--blue);margin:12px;padding:12px 14px;border-radius:0 var(--r) var(--r) 0;font-size:14px;line-height:1.6;color:var(--text);}
+#detail-screen{padding-bottom:48px;}
+.df{padding:14px 16px;border-bottom:1px solid var(--border);}
+.dl{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+.dv{font-size:15px;color:var(--text);line-height:1.7;}
+.dv.big{font-size:22px;font-weight:700;line-height:1.25;}
+.chip{display:inline-block;background:var(--blue-lt);color:var(--blue-dk);padding:3px 10px;border-radius:14px;font-size:13px;margin:2px 4px 2px 0;font-weight:500;}
+.ab{display:inline-block;padding:5px 14px;border-radius:14px;font-size:13px;font-weight:600;}
+.ab.adult{background:#e6f4ea;color:#137333;}
+.ab.ped{background:#fce8e6;color:#c5221f;}
+.ab.both{background:#fef7e0;color:#b06000;}
+.rb{padding:6px 0;font-size:13px;line-height:1.6;border-bottom:1px solid #f0f0f0;}
+.rb:last-child{border:none;}
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;}
+.empty{text-align:center;padding:56px 24px;color:var(--text2);}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+.smeta{padding:8px 16px;font-size:12px;color:var(--text2);background:var(--gray-lt);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2;}
+#content::-webkit-scrollbar{width:4px;}
+#content::-webkit-scrollbar-thumb{background:#ccc;border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hdr">
+    <button id="back-btn" onclick="goBack()">&#8592;</button>
+    <div id="hdr-title"><h1>BxP</h1><p>Biochemistry by Presentation</p></div>
+    <button id="search-btn" onclick="toggleSearch()">&#128269;</button>
+  </div>
+  <div id="search-bar">
+    <input id="search-input" type="search" placeholder="Search diagnoses, mechanisms..."
+           oninput="onSearch(this.value)" autocomplete="off" spellcheck="false">
+  </div>
+  <div id="tabs">
+    <div class="tab on" onclick="showTab('pres')">Presentations</div>
+    <div class="tab"    onclick="showTab('diff')">Differentials</div>
+    <div class="tab"    onclick="showTab('srch')">Search</div>
+    <div class="tab"    onclick="showTab('info')">About</div>
+  </div>
+  <div id="content">
+    <div id="pres-screen"   class="screen on"></div>
+    <div id="pdtl-screen"   class="screen"></div>
+    <div id="diff-screen"   class="screen"></div>
+    <div id="detail-screen" class="screen"></div>
+    <div id="srch-screen"   class="screen"></div>
+    <div id="info-screen"   class="screen"></div>
+  </div>
+</div>
+<script>
+// @@PRES_DEFS_START@@
+const PRES_DEFS = {};
+// @@PRES_DEFS_END@@
+
+// @@MASTER_DATA_START@@
+const MASTER = [];
+// @@MASTER_DATA_END@@
+
+let presIdx  = {};
+let broadIdx = {};
+
+function buildIndexes() {
+  MASTER.forEach(function(r) {
+    var pn = r.pn, bd = r.bd;
+    if (pn) {
+      if (!presIdx[pn]) presIdx[pn] = {name:pn, def:PRES_DEFS[pn]||'', count:0};
+      presIdx[pn].count++;
+    }
+    if (bd) {
+      if (!broadIdx[bd]) broadIdx[bd] = {name:bd, count:0, presSet:new Set()};
+      broadIdx[bd].count++;
+      if (pn) broadIdx[bd].presSet.add(pn);
+    }
+  });
+}
+
+var navStack = [];
+var curTab   = 'pres';
+var searchOpen = false;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// attr() safely encodes a value for use in a data-* attribute (double-quote safe)
+function attr(v) { return (v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+function hideAll() { document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');}); }
+
+function setHdr(title, sub) {
+  $('hdr-title').innerHTML = '<h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p>';
+}
+
+function pushNav(sid) {
+  navStack.push({sid:sid, scrollY:$('content').scrollTop});
+  $('back-btn').style.display = 'block';
+}
+
+function goBack() {
+  if (!navStack.length) return;
+  var prev = navStack.pop();
+  hideAll();
+  $(prev.sid).classList.add('on');
+  $('back-btn').style.display = navStack.length ? 'block' : 'none';
+  setTimeout(function(){ $('content').scrollTop = prev.scrollY; }, 0);
+  if (!navStack.length) setHdr('BxP','Biochemistry by Presentation');
+}
+
+function showTab(tab) {
+  curTab = tab;
+  navStack = [];
+  $('back-btn').style.display = 'none';
+  document.querySelectorAll('.tab').forEach(function(t,i){
+    t.classList.toggle('on', ['pres','diff','srch','info'][i] === tab);
+  });
+  hideAll();
+  setHdr('BxP','Biochemistry by Presentation');
+  if (tab==='pres')       { renderPresListIfNeeded(); $('pres-screen').classList.add('on'); }
+  else if (tab==='diff')  { renderDiffListIfNeeded(); $('diff-screen').classList.add('on'); }
+  else if (tab==='info')  { renderInfoIfNeeded();     $('info-screen').classList.add('on'); }
+  else                    { $('srch-screen').classList.add('on'); renderSearch(''); }
+}
+
+var infoBuilt = false;
+function renderInfoIfNeeded() {
+  if (infoBuilt) return;
+  infoBuilt = true;
+  var presCount = Object.keys(presIdx).length;
+  var diffCount = Object.keys(broadIdx).length;
+  var entryCount = MASTER.length;
+  $('info-screen').innerHTML =
+    '<div style="padding:16px 16px 8px">' +
+      '<div style="font-size:22px;font-weight:700;color:var(--blue);margin-bottom:4px;">BxP</div>' +
+      '<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Biochemistry by Presentation</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:20px;">' +
+        statChip(presCount, 'Presentations') +
+        statChip(diffCount, 'Differentials') +
+        statChip(entryCount, 'Combinations') +
+      '</div>' +
+    '</div>' +
+    infoSection('About', '' +
+      '<p>' + presCount + ' common clinical presentations each have a number of underlying differential diagnoses that can lead to that presentation through known biochemical mechanisms. ' +
+      'The BxP (Biochemistry by Presentation) Database provides the biochemical mechanism for over 500 unique combinations of presentation and differential diagnosis.</p>' +
+      '<p style="margin-top:10px;">The BxP App allows the user — a clerkship medical student, resident, or attending — to quickly navigate these combinations in the clinic to recall the biochemistry underlying disease and provide better care for their patients.</p>') +
+    infoSection('Content &amp; Citation', '' +
+      '<p>Content is based on the BxP database developed by <strong>Jaya Yodh</strong> (Carle Illinois College of Medicine) and colleagues at multiple institutions through the <strong>Association of Biochemistry Educators (ABE)</strong>.</p>' +
+      '<p style="margin-top:10px;">[Citation will be added when published.]</p>' +
+      '<p style="margin-top:10px;">The full database — containing more detailed information than the App — can be downloaded at the <strong>ABE website</strong>. [URL to be added]</p>') +
+    infoSection('Development', '' +
+      '<p>App developed by <strong>Larry Myers</strong> ' +
+      '(<a href="mailto:larry.myers@dartmouth.edu">larry.myers@dartmouth.edu</a>) ' +
+      'and colleagues at the <strong>Geisel School of Medicine at Dartmouth</strong>.</p>') +
+    infoSection('How to Navigate', '' +
+      navItem('Presentations',
+        '<ol style="padding-left:18px;line-height:2;">' +
+        '<li>Tap one of ' + presCount + ' clinical presentations (alphabetical).</li>' +
+        '<li>Tap a differential diagnosis that can lead to that presentation.</li>' +
+        '<li>View the entry summary (see below).</li>' +
+        '</ol>') +
+      navItem('Differentials',
+        '<ol style="padding-left:18px;line-height:2;">' +
+        '<li>Tap one of ' + diffCount + ' broad diagnostic categories (alphabetical).</li>' +
+        '<li>Tap a presentation + specific differential combination.</li>' +
+        '<li>View the entry summary (see below).</li>' +
+        '</ol>') +
+      navItem('Search',
+        '<ol style="padding-left:18px;line-height:2;">' +
+        '<li>Tap the <strong>&#128269;</strong> magnifying glass in the upper-right corner.</li>' +
+        '<li>Type a keyword (e.g. <em>vitamin</em>, <em>anemia</em>, <em>hyperammonemia</em>).</li>' +
+        '<li>Tap a returned combination of differential and presentation.</li>' +
+        '<li>View the entry summary (see below).</li>' +
+        '</ol>')) +
+    infoSection('Entry Summary Fields', '' +
+      '<div style="line-height:1.9;font-size:14px;">' +
+      field('Population', 'Adult or pediatric patient group affected.') +
+      field('Presentation Definition', 'Clinical definition of the presentation.') +
+      field('Clinical Mechanism', 'Molecular/cellular basis of how the differential leads to the presentation.') +
+      field('Patient-Friendly Explanation', 'Plain-language version of the mechanism.') +
+      field('References', 'Sources with further detail on the mechanism and presentation.') +
+      field('Additional Notes', 'Epidemiological or contextual notes where relevant.') +
+      '</div>') +
+    '<div style="height:32px;"></div>';
+}
+
+function statChip(n, label) {
+  return '<div style="flex:1;background:var(--blue-lt);border-radius:var(--r);padding:10px 8px;text-align:center;">' +
+    '<div style="font-size:20px;font-weight:700;color:var(--blue);">'+n+'</div>' +
+    '<div style="font-size:11px;color:var(--text2);margin-top:2px;">'+label+'</div>' +
+    '</div>';
+}
+
+function infoSection(title, body) {
+  return '<div style="margin:0 12px 12px;background:var(--gray-lt);border-radius:var(--r);overflow:hidden;">' +
+    '<div style="background:var(--border);padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);">'+title+'</div>' +
+    '<div style="padding:14px;font-size:14px;color:var(--text);line-height:1.6;">'+body+'</div>' +
+    '</div>';
+}
+
+function navItem(title, body) {
+  return '<div style="margin-bottom:14px;">' +
+    '<div style="font-weight:600;color:var(--blue);margin-bottom:6px;">'+title+'</div>' +
+    body + '</div>';
+}
+
+function field(label, desc) {
+  return '<div style="padding:5px 0;border-bottom:1px solid var(--border);">' +
+    '<span style="font-weight:600;">'+label+'</span> — '+desc+'</div>';
+}
+
+var presListBuilt = false;
+function renderPresListIfNeeded() {
+  if (presListBuilt) return;
+  presListBuilt = true;
+  var sorted = Object.values(presIdx).sort(function(a,b){return a.name.localeCompare(b.name);});
+  $('pres-screen').innerHTML = sorted.map(function(p) {
+    return '<div class="li" data-action="pres-detail" data-pn="' + attr(p.name) + '">' +
+      '<div class="li-text">' +
+      '<div class="li-p">'+esc(p.name)+'</div>' +
+      (p.def ? '<div class="li-s">'+esc(p.def.slice(0,88))+'...</div>' : '') +
+      '</div>' +
+      '<span class="badge">'+p.count+'</span>' +
+      '<span class="chev">&#8250;</span>' +
+      '</div>';
+  }).join('');
+}
+
+function showPresDetail(pn) {
+  pushNav('pres-screen');
+  hideAll();
+  var entries = MASTER.filter(function(r){ return r.pn === pn; });
+  var groups = {};
+  entries.forEach(function(r) {
+    var bd = r.bd || 'Other';
+    if (!groups[bd]) groups[bd] = [];
+    groups[bd].push(r);
+  });
+  var def = PRES_DEFS[pn] || '';
+  var html = def ? '<div class="banner">'+esc(def)+'</div>' : '';
+  Object.keys(groups).sort().forEach(function(bd) {
+    html += '<div class="gh">'+esc(bd)+'</div>';
+    groups[bd].forEach(function(r) {
+      var sd = r.sd || '';
+      html += '<div class="li" data-action="detail" data-id="' + attr(r.id) + '">' +
+        '<div class="li-text">' +
+        '<div class="li-p">'+esc(bd)+'</div>' +
+        (sd ? '<div class="li-s">'+esc(sd)+'</div>' : '') +
+        '</div><span class="chev">&#8250;</span></div>';
+    });
+  });
+  $('pdtl-screen').innerHTML = html;
+  $('pdtl-screen').classList.add('on');
+  $('content').scrollTop = 0;
+  setHdr(pn, entries.length+' differential'+(entries.length!==1?'s':''));
+}
+
+var diffListBuilt = false;
+function renderDiffListIfNeeded() {
+  if (diffListBuilt) return;
+  diffListBuilt = true;
+  var sorted = Object.values(broadIdx).sort(function(a,b){return a.name.localeCompare(b.name);});
+  var groups = {};
+  sorted.forEach(function(d) {
+    var L = (d.name[0]||'#').toUpperCase();
+    if (!groups[L]) groups[L] = [];
+    groups[L].push(d);
+  });
+  var html = '';
+  Object.keys(groups).sort().forEach(function(L) {
+    html += '<div class="gh">'+L+'</div>';
+    groups[L].forEach(function(d) {
+      var plist = [...d.presSet].sort().slice(0,3).join(' · ') + (d.presSet.size>3?' +more':'');
+      html += '<div class="li" data-action="diff-detail" data-bd="' + attr(d.name) + '">' +
+        '<div class="li-text">' +
+        '<div class="li-p">'+esc(d.name)+'</div>' +
+        '<div class="li-s">'+esc(plist)+'</div>' +
+        '</div>' +
+        '<span class="badge">'+d.count+'</span>' +
+        '<span class="chev">&#8250;</span></div>';
+    });
+  });
+  $('diff-screen').innerHTML = html;
+}
+
+function showDiffDetail(bd) {
+  pushNav('diff-screen');
+  hideAll();
+  var entries = MASTER.filter(function(r){ return r.bd === bd; });
+  var groups = {};
+  entries.forEach(function(r){ var p=r.pn||'Unknown'; if(!groups[p])groups[p]=[]; groups[p].push(r); });
+  var html = '';
+  Object.keys(groups).sort().forEach(function(pn) {
+    html += '<div class="gh">'+esc(pn)+'</div>';
+    groups[pn].forEach(function(r) {
+      var sd = r.sd || '';
+      html += '<div class="li" data-action="detail" data-id="' + attr(r.id) + '">' +
+        '<div class="li-text">' +
+        '<div class="li-p">'+esc(bd)+'</div>' +
+        (sd ? '<div class="li-s">'+esc(sd)+'</div>' : '') +
+        '</div><span class="chev">&#8250;</span></div>';
+    });
+  });
+  $('pdtl-screen').innerHTML = html;
+  $('pdtl-screen').classList.add('on');
+  $('content').scrollTop = 0;
+  setHdr(bd, entries.length+' entr'+(entries.length!==1?'ies':'y'));
+}
+
+var byId = {};
+function buildById() { MASTER.forEach(function(r){ byId[r.id]=r; }); }
+
+function showDetail(rid) {
+  var r = byId[rid];
+  if (!r) return;
+  var from = (document.querySelector('.screen.on')||{}).id || 'pdtl-screen';
+  pushNav(from);
+  hideAll();
+  setHdr(r.sd||r.bd, r.pn);
+  var html = '';
+  html += '<div class="df" style="background:var(--blue-lt);border-left:4px solid var(--blue)">' +
+    '<div class="dl">Diagnosis</div>' +
+    '<div class="dv big">'+esc(r.sd||r.bd)+'</div></div>';
+  if (r.bd) html += df('Diagnosis Category', esc(r.bd));
+  if (r.pn) html += df('Clinical Presentation', '<strong>'+esc(r.pn)+'</strong>');
+  if (r.pop) html += df('Age Group', ageBadge(r.pop));
+  if (r.mech) html += df('Clinical Mechanism', '<span style="white-space:pre-wrap">'+esc(r.mech)+'</span>');
+  if (r.patient) html += df('Patient-Friendly Explanation', '<em style="white-space:pre-wrap">'+esc(r.patient)+'</em>');
+  if (r.resources) html += df('References', formatRefs(r.resources));
+  if (r.topics) {
+    var chips = r.topics.split(/[;,]/).map(function(s){return s.trim();}).filter(Boolean)
+      .map(function(t){return '<span class="chip">'+esc(t)+'</span>';}).join('');
+    if (chips) html += df('Critical Biochem Concepts', chips);
+  }
+  if (r.notes) html += df('Additional Notes', '<span style="white-space:pre-wrap">'+esc(r.notes)+'</span>');
+  if (r.id) html += df('ID', '<span style="font-family:monospace;color:var(--text2)">'+esc(r.id)+'</span>');
+  $('detail-screen').innerHTML = html;
+  $('detail-screen').classList.add('on');
+  $('content').scrollTop = 0;
+}
+
+function df(label, valHtml) {
+  return '<div class="df"><div class="dl">'+label+'</div><div class="dv">'+valHtml+'</div></div>';
+}
+
+function ageBadge(pop) {
+  var p = pop.toLowerCase();
+  var cls = (p.includes('adult') && p.includes('pediatric')) ? 'both'
+          : p.includes('pediatric') ? 'ped' : 'adult';
+  return '<span class="ab '+cls+'">'+esc(pop)+'</span>';
+}
+
+function formatRefs(text) {
+  var items = text.split(' | ').filter(Boolean);
+  return items.map(function(s){
+    return '<div class="rb">'+linkify(esc(s.trim()))+'</div>';
+  }).join('');
+}
+
+function linkify(t) {
+  return t.replace(/(https?:\/\/[^\s&lt;&gt;]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+function toggleSearch() {
+  searchOpen = !searchOpen;
+  $('search-bar').style.display = searchOpen ? 'block' : 'none';
+  if (searchOpen) { setTimeout(function(){$('search-input').focus();},50); $('search-input').value=''; }
+}
+
+function onSearch(val) {
+  if (curTab !== 'srch') { showTab('srch'); }
+  renderSearch(val);
+}
+
+function renderSearch(q2) {
+  if (!q2.trim()) {
+    $('srch-screen').innerHTML = '<div class="empty"><div class="empty-icon">&#128269;</div>' +
+      '<p>Type to search across all diagnoses,<br>mechanisms, and presentations.</p></div>';
+    return;
+  }
+  var ql = q2.toLowerCase();
+  var hits = MASTER.filter(function(r){
+    return (r.pn+r.bd+r.sd+r.mech+r.patient+r.topics+r.id).toLowerCase().includes(ql);
+  });
+  if (!hits.length) {
+    $('srch-screen').innerHTML = '<div class="empty"><div class="empty-icon">&#128533;</div>' +
+      '<p>No results for <strong>"'+esc(q2)+'"</strong></p></div>';
+    return;
+  }
+  var html = '<div class="smeta">'+hits.length+' result'+(hits.length!==1?'s':'')+' for "'+esc(q2)+'"</div>';
+  hits.forEach(function(r) {
+    html += '<div class="li" data-action="detail" data-id="' + attr(r.id) + '">' +
+      '<div class="li-text">' +
+      '<div class="li-p">'+esc(r.bd)+'</div>' +
+      '<div class="li-s">'+esc(r.sd||'')+(r.pn?' &middot; '+esc(r.pn):'')+'</div>' +
+      '</div><span class="chev">&#8250;</span></div>';
+  });
+  $('srch-screen').innerHTML = html;
+}
+
+// ── DELEGATED CLICK HANDLER ──────────────────────────────────────────────────
+// All list-item taps bubble up here. We read data-action + data-* instead of
+// relying on inline onclick strings, which break whenever names contain quotes.
+$('content').addEventListener('click', function(e) {
+  var el = e.target.closest('[data-action]');
+  if (!el) return;
+  var action = el.dataset.action;
+  if (action === 'pres-detail') { showPresDetail(el.dataset.pn); }
+  else if (action === 'diff-detail') { showDiffDetail(el.dataset.bd); }
+  else if (action === 'detail')      { showDetail(el.dataset.id); }
+});
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/BxP/sw.js');
+}
+window.onload = function() {
+  if (!MASTER.length) {
+    document.getElementById('content').innerHTML =
+      '<div class="empty">' +
+      '<div class="empty-icon">&#9888;&#65039;</div>' +
+      '<p><strong>No data loaded.</strong><br><br>' +
+      'Run <code>inject_data.py</code> to embed your CSV data into this file.</p>' +
+      '</div>';
+    return;
+  }
+  buildIndexes();
+  buildById();
+  renderPresListIfNeeded();
+};
+</script>
+</body>
+</html>
