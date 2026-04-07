@@ -67,8 +67,8 @@ def clean_multiline(s):
     # replace double newlines with a safe sentinel that won't break JS
     s = s.replace('\n\n', ' | ')
     # replace remaining single newlines with a space
-    s = s.replace('\n', ' ')
-    return s.strip()
+    s = re.sub(r' *\n', ' ', s)
+    return s.strip().rstrip()
 
 def read_csv(path):
     """Read CSV, stripping BOM and whitespace from headers."""

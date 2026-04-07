@@ -395,12 +395,17 @@ function ageBadge(pop) {
 function formatRefs(text) {
   var items = text.split(' | ').filter(Boolean);
   return items.map(function(s){
-    return '<div class="rb">'+linkify(esc(s.trim()))+'</div>';
+    return '<div class="rb">'+linkify(s.trim())+'</div>';
   }).join('');
 }
 
 function linkify(t) {
-  return t.replace(/(https?:\/\/[^\s&lt;&gt;]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  var parts = t.split(/(https?:\/\/[^\s<>"]+)/g);
+  return parts.map(function(p, i) {
+    return (i % 2 === 1)
+      ? '<a href="'+p+'" target="_blank" rel="noopener">'+p+'</a>'
+      : esc(p);
+  }).join('');
 }
 
 function toggleSearch() {
